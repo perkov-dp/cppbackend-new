@@ -28,3 +28,6 @@ find_package(Threads REQUIRED)
 add_executable(hello src/main.cpp)
 # Просим компоновщик подключить библиотеку для поддержки потоков
 target_link_libraries(hello PRIVATE Threads::Threads)
+
+# Boost.Beast будет использовать std::string_view вместо boost::string_view
+add_compile_definitions(BOOST_BEAST_USE_STD_STRING_VIEW)

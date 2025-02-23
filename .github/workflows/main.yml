@@ -40,11 +40,11 @@ jobs:
           cd cpp-backend-tests-practicum/scripts/sprint1
           ./sum/run.sh
 
-#      - name: run tests sprint1 sync_server
-#        run: |
-#          cd cpp-backend-tests-practicum/scripts/sprint1
-#          ./sync_server/run.sh
-#
+      - name: run tests sprint1 sync_server
+        run: |
+          cd cpp-backend-tests-practicum/scripts/sprint1
+          ./sync_server/run.sh
+
 #      - name: run tests sprint1 restaurant_single_threaded
 #        run: |
 #          cd cpp-backend-tests-practicum/scripts/sprint1

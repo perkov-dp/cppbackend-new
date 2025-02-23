@@ -5,6 +5,7 @@
 #include <sdkddkver.h>
 #endif
 
+
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/write.hpp>
 // Библиотеки для работы с http
@@ -13,7 +14,6 @@
 #include <iostream>
 #include <optional>
 #include <thread>
-#include <string_view>
 
 namespace net = boost::asio;
 using tcp = net::ip::tcp;
@@ -33,8 +33,33 @@ struct ContentType {
     ContentType() = delete;
     constexpr static std::string_view TEXT_HTML = "text/html"sv;
     // При необходимости внутрь ContentType можно добавить и другие типы контента
-    constexpr static std::string_view ALLOW = "GET, HEAD"sv;
 };
+
+// Создаёт StringResponse с заданными параметрами
+StringResponse MakeStringResponse(http::status status, std::string_view body, unsigned http_version,
+                                  bool keep_alive,
+                                  std::string_view content_type = ContentType::TEXT_HTML) {
+    // Формируем ответ со статусом status и версией равной http_version
+    StringResponse response(status, http_version);
+    response.set(http::field::content_type, content_type);
+    // Формируем тело ответа
+    response.body() = body;
+    // Формируем заголовок Content-Length, сообщающий длину тела ответа
+    response.content_length(body.size());
+    // Формируем заголовок Connection в зависимости от значения заголовка в запросе
+    response.keep_alive(keep_alive);
+    return response;
+}
+
+// Обрабатываем запрос и формируем ответ
+StringResponse HandleRequest(StringRequest&& req) {
+    const auto text_response = [&req](http::status status, std::string_view text) {
+        return MakeStringResponse(status, text, req.version(), req.keep_alive());
+    };
+
+    // Здесь можно обработать запрос и сформировать ответ, но пока всегда отвечаем: Hello
+    return text_response(http::status::ok, "<strong>Hello</strong>"sv);
+} 
 
 std::optional<StringRequest> ReadRequest(tcp::socket& socket, beast::flat_buffer& buffer) {
     beast::error_code ec;
@@ -57,44 +82,6 @@ void DumpRequest(const StringRequest& req) {
     // Выводим заголовки запроса
     for (const auto& header : req) {
         std::cout << "  "sv << header.name_string() << ": "sv << header.value() << std::endl;
-    }
-}
-
-// Создаёт StringResponse с заданными параметрами
-StringResponse MakeStringResponse(http::status status, std::string_view body, 
-                                  unsigned http_version, bool keep_alive,
-                                  std::string_view allow = "",
-                                  std::string_view content_type = ContentType::TEXT_HTML) {
-    // Формируем ответ со статусом status и версией равной http_version
-    StringResponse response(status, http_version);
-    response.set(http::field::content_type, content_type);
-    response.set(http::field::allow, allow);
-    // Формируем тело ответа
-    response.body() = body;
-    // Формируем заголовок Content-Length, сообщающий длину тела ответа
-    response.content_length(body.size());
-    // Формируем заголовок Connection в зависимости от значения заголовка в запросе
-    response.keep_alive(keep_alive);
-    return response;
-}
-
-// Обрабатываем запрос и формируем ответ
-StringResponse HandleRequest(StringRequest&& req) {
-    const auto text_response = [&req](http::status status, std::string_view text, 
-        std::string_view allow = "") {
-        return MakeStringResponse(status, text, req.version(), req.keep_alive(), allow);
-    };
-
-    if(req.method() == http::verb::get) {
-        std::string target(std::string(req.target()));
-        target.erase(target.begin());
-        std::string responce("Hello, " + target);
-
-        return text_response(http::status::ok, responce);
-    } else if (req.method() == http::verb::head) {
-        return text_response(http::status::ok, "");
-    } else {
-        return text_response(http::status::method_not_allowed, "Invalid method", ContentType::ALLOW);
     }
 }
 
@@ -150,7 +137,6 @@ int main() {
     // Первое, что должен сделать ваш HTTP-сервер — открыть порт и начать принимать подключения клиентов к этому порту
     // Объект, позволяющий принимать tcp-подключения к сокету
     tcp::acceptor acceptor(ioc, {address, port});
-    std::cout << "Server has started..."sv << std::endl;
     
     while (true) {
     	// Дождаться подключения клиента к сокету, переданному в качестве параметра метода
