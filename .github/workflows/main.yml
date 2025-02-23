@@ -35,11 +35,11 @@ jobs:
           pip install -U conan==1.59.0
           cp -R /home/forconan/.conan /github/home/.conan
           
-#      - name: run tests sprint1 sum
-#        run: |
-#          cd cpp-backend-tests-practicum/scripts/sprint1
-#          ./sum/run.sh
-#
+      - name: run tests sprint1 sum
+        run: |
+          cd cpp-backend-tests-practicum/scripts/sprint1
+          ./sum/run.sh
+
 #      - name: run tests sprint1 sync_server
 #        run: |
 #          cd cpp-backend-tests-practicum/scripts/sprint1
@@ -49,11 +49,11 @@ jobs:
 #        run: |
 #          cd cpp-backend-tests-practicum/scripts/sprint1
 #          ./restaurant_single_threaded/run.sh
-
-      - name: run tests sprint1 restaurant_multi_threaded
-        run: |
-          cd cpp-backend-tests-practicum/scripts/sprint1
-          ./restaurant_multi_threaded/run.sh
+#
+#      - name: run tests sprint1 restaurant_multi_threaded
+#        run: |
+#          cd cpp-backend-tests-practicum/scripts/sprint1
+#          ./restaurant_multi_threaded/run.sh
 #
 #      - name: run tests sprint1 cafeteria
 #        run: |
